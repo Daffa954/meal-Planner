@@ -36,6 +36,6 @@ class Children extends Model
     
     public function mealPlans()
     {
-        return $this->hasMany(MealPlan::class);
+        return $this->hasMany(MealPlan::class, 'child_id');
     }
 }

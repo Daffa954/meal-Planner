@@ -9,10 +9,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">Daftar Resep</h1>
                 <p class="text-gray-600 mt-2">Resep yang sudah digenerate dan disimpan</p>
             </div>
-            <a href="{{ route('recipes.generate') }}" 
-               class="bg-[#4BA095] text-white px-6 py-3 rounded-lg hover:bg-[#3a887d] transition font-semibold">
-                🎯 Generate Resep Baru
-            </a>
+            
         </div>
 
         @if($recipes->isEmpty())

@@ -1,6 +1,6 @@
 <x-layout>
     @section('title', 'Buat Meal Plan - Meal Planner')
-
+<x-navbar-user></x-navbar-user>
     <div class="min-h-screen bg-gray-50 py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header -->
@@ -25,10 +25,7 @@
                 </div>
 
                 <!-- Credit Info -->
-                <div class="mt-4 inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
-                    <span class="font-semibold">Kredit tersedia: {{ auth()->user()->credit }}</span>
-                    <span class="ml-2 text-sm">(10 kredit/generate)</span>
-                </div>
+                
             </div>
 
             <!-- Meal Plan Form -->
@@ -36,7 +33,7 @@
                 <form id="mealPlanForm" action="{{ route('meal-plans.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="child_id" value="{{ $child->id }}">
-                    <input type="date" id="selected_date_input" name="date">
+                    <input type="date" id="selected_date_input" name="date" class="mb-6">
 
                     <!-- Meal Times Container -->
                     <div id="mealTimesContainer" class="space-y-6">
@@ -224,157 +221,199 @@
         let currentGeneratedRecipe = null;
 
         // Function untuk menambah meal time
-        function addMealTime(selectedType = '', selectedTime = '', selectedRecipe = '') {
-            const container = document.getElementById('mealTimesContainer');
-            const mealTimeId = `meal_time_${mealTimeCounter++}`;
+        // Function untuk menambah meal time - VERSI DIPERBAIKI
+function addMealTime(selectedType = '', selectedTime = '', selectedRecipe = '') {
+    const container = document.getElementById('mealTimesContainer');
+    const mealTimeId = `meal_time_${mealTimeCounter++}`;
 
-            // Get available types (exclude yang sudah dipilih)
-            const usedTypes = Array.from(document.querySelectorAll('.meal-time-type'))
-                .map(select => select.value)
-                .filter(value => value !== selectedType && value !== '');
+    // Get available types (exclude yang sudah dipilih di meal time LAIN)
+    const usedTypes = Array.from(document.querySelectorAll('.meal-time-type'))
+        .map(select => select.value)
+        .filter(value => value !== '' && value !== selectedType); // Exclude current selected type
 
-            const availableTypes = Object.keys(mealTimeOptions).filter(type => !usedTypes.includes(type));
+    const availableTypes = Object.keys(mealTimeOptions).filter(type => !usedTypes.includes(type));
 
-            if (availableTypes.length === 0 && !selectedType) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak ada jenis makanan tersisa',
-                    text: 'Semua jenis makanan sudah ditambahkan',
-                    confirmButtonColor: '#4BA095'
-                });
-                return;
-            }
+    // Jika tidak ada jenis tersisa DAN ini bukan edit existing item, tampilkan warning
+    if (availableTypes.length === 0 && !selectedType) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tidak ada jenis makanan tersisa',
+            text: 'Semua jenis makanan sudah ditambahkan',
+            confirmButtonColor: '#4BA095'
+        });
+        return;
+    }
 
-            const mealTimeHtml = `
-                <div class="border rounded-lg p-6 meal-time-item" id="${mealTimeId}">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Waktu Makan</h3>
-                            <p class="text-sm text-gray-600">Atur waktu dan resep untuk makan ini</p>
-                        </div>
-                        <div class="flex space-x-2">
-                            <button type="button" 
-                                    data-meal-time-id="${mealTimeId}"
-                                    class="generate-meal-btn bg-[#4BA095] text-white px-4 py-2 rounded-lg hover:bg-[#3a887d] transition font-semibold flex items-center text-sm">
-                                🎯 Generate Resep
-                            </button>
-                            <button type="button" 
-                                    onclick="removeMealTime('${mealTimeId}')"
-                                    class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition font-semibold flex items-center text-sm">
-                                🗑️ Hapus
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Meal Type Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Makanan</label>
-                            <select name="meal_plans[${mealTimeId}][type]" 
-                                    class="meal-time-type w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095] focus:border-transparent" required>
-                                <option value="">Pilih Jenis</option>
-                                ${Object.entries(mealTimeOptions)
-                                    .map(([key, value]) => 
-                                        `<option value="${key}" ${selectedType === key ? 'selected' : ''} 
-                                                                                                                                              ${usedTypes.includes(key) && selectedType !== key ? 'disabled' : ''}>
-                                                                                                                                                ${value.label}
-                                                                                                                                             </option>`
-                                    )
-                                    .join('')}
-                            </select>
-                        </div>
-
-                        <!-- Time Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Makan</label>
-                            <input type="time" 
-                                   name="meal_plans[${mealTimeId}][time]"
-                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095] focus:border-transparent"
-                                   value="${selectedTime || '12:00'}"
-                                   required>
-                        </div>
-
-                        <!-- Recipe Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Resep</label>
-                            <div class="space-y-2">
-                                <select name="meal_plans[${mealTimeId}][recipe_id]" 
-                                        class="recipe-select w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095] focus:border-transparent">
-                                    <option value="">Pilih Resep</option>
-                                    @foreach ($recipes as $recipe)
-                                    <option value="{{ $recipe->id }}" 
-                                            data-calories="{{ $recipe->nutrition->calories ?? 0 }}"
-                                            data-carb="{{ $recipe->nutrition->carb ?? 0 }}"
-                                            data-protein="{{ $recipe->nutrition->protein ?? 0 }}"
-                                            data-fat="{{ $recipe->nutrition->total_fat ?? 0 }}"
-                                            ${selectedRecipe == '{{ $recipe->id }}' ? 'selected' : ''}>
-                                        {{ $recipe->name }} ({{ $recipe->nutrition->calories ?? 0 }} kkal)
+    const mealTimeHtml = `
+        <div class="border rounded-lg p-6 meal-time-item" id="${mealTimeId}">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Waktu Makan</h3>
+                    <p class="text-sm text-gray-600">Atur waktu dan resep untuk makan ini</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button type="button" 
+                            data-meal-time-id="${mealTimeId}"
+                            class="generate-meal-btn bg-[#4BA095] text-white px-4 py-2 rounded-lg hover:bg-[#3a887d] transition font-semibold flex items-center text-sm">
+                        🎯 Generate Resep
+                    </button>
+                    <button type="button" 
+                            onclick="removeMealTime('${mealTimeId}')"
+                            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition font-semibold flex items-center text-sm">
+                        🗑️ Hapus
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Meal Type Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Makanan</label>
+                    <select name="meal_plans[${mealTimeId}][type]" 
+                            class="meal-time-type w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095] focus:border-transparent" required>
+                        <option value="">Pilih Jenis</option>
+                        ${Object.entries(mealTimeOptions)
+                            .map(([key, value]) => {
+                                const isUsed = usedTypes.includes(key) && selectedType !== key;
+                                const isSelected = selectedType === key;
+                                return `
+                                    <option value="${key}" 
+                                        ${isSelected ? 'selected' : ''} 
+                                        ${isUsed ? 'disabled' : ''}>
+                                        ${value.label}
                                     </option>
-                                    @endforeach
-                                </select>
-                                
-                                <!-- Nutrition Preview -->
-                                <div class="nutrition-preview text-xs text-gray-600 mt-2 hidden">
-                                    <div class="grid grid-cols-2 gap-1">
-                                        <span>🔥 <span class="calories">0</span> kkal</span>
-                                        <span>🍚 <span class="carb">0</span>g</span>
-                                        <span>🥚 <span class="protein">0</span>g</span>
-                                        <span>🥑 <span class="fat">0</span>g</span>
-                                    </div>
-                                </div>
+                                `;
+                            })
+                            .join('')}
+                    </select>
+                </div>
+
+                <!-- Time Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Waktu Makan</label>
+                    <input type="time" 
+                           name="meal_plans[${mealTimeId}][time]"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095] focus:border-transparent"
+                           value="${selectedTime || getDefaultTime(selectedType)}"
+                           required>
+                </div>
+
+                <!-- Recipe Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Resep</label>
+                    <div class="space-y-2">
+                        <select name="meal_plans[${mealTimeId}][recipe_id]" 
+                                class="recipe-select w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095] focus:border-transparent">
+                            <option value="">Pilih Resep</option>
+                            @foreach ($recipes as $recipe)
+                            <option value="{{ $recipe->id }}" 
+                                    data-calories="{{ $recipe->nutrition->calories ?? 0 }}"
+                                    data-carb="{{ $recipe->nutrition->carb ?? 0 }}"
+                                    data-protein="{{ $recipe->nutrition->protein ?? 0 }}"
+                                    data-fat="{{ $recipe->nutrition->total_fat ?? 0 }}"
+                                    ${selectedRecipe == '{{ $recipe->id }}' ? 'selected' : ''}>
+                                {{ $recipe->name }} ({{ $recipe->nutrition->calories ?? 0 }} kkal)
+                            </option>
+                            @endforeach
+                        </select>
+                        
+                        <!-- Nutrition Preview -->
+                        <div class="nutrition-preview text-xs text-gray-600 mt-2 hidden">
+                            <div class="grid grid-cols-2 gap-1">
+                                <span>🔥 <span class="calories">0</span> kkal</span>
+                                <span>🍚 <span class="carb">0</span>g</span>
+                                <span>🥚 <span class="protein">0</span>g</span>
+                                <span>🥑 <span class="fat">0</span>g</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        </div>
+    `;
 
-            container.insertAdjacentHTML('beforeend', mealTimeHtml);
+    container.insertAdjacentHTML('beforeend', mealTimeHtml);
 
-            // Add event listeners untuk elemen yang baru ditambahkan
-            const newMealTime = document.getElementById(mealTimeId);
-            const recipeSelect = newMealTime.querySelector('.recipe-select');
-            const typeSelect = newMealTime.querySelector('.meal-time-type');
-            const generateBtn = newMealTime.querySelector('.generate-meal-btn');
+    // Add event listeners untuk elemen yang baru ditambahkan
+    const newMealTime = document.getElementById(mealTimeId);
+    const recipeSelect = newMealTime.querySelector('.recipe-select');
+    const typeSelect = newMealTime.querySelector('.meal-time-type');
+    const generateBtn = newMealTime.querySelector('.generate-meal-btn');
 
-            recipeSelect.addEventListener('change', function() {
-                updateNutritionPreview(this);
-                updateDailySummary();
-            });
+    recipeSelect.addEventListener('change', function() {
+        updateNutritionPreview(this);
+        updateDailySummary();
+    });
 
-            typeSelect.addEventListener('change', function() {
-                // Update default time berdasarkan jenis makanan
-                const selectedType = this.value;
-                if (selectedType && mealTimeOptions[selectedType]) {
-                    const timeInput = this.closest('.meal-time-item').querySelector('input[type="time"]');
-                    timeInput.value = mealTimeOptions[selectedType].default_time;
-                }
-
-                // Update generate button data-type
-                generateBtn.setAttribute('data-type', selectedType);
-            });
-
-            generateBtn.addEventListener('click', function() {
-                const mealType = this.getAttribute('data-type') || typeSelect.value;
-                if (mealType) {
-                    showGenerateModalForMeal(mealType);
-                } else {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Pilih Jenis Makanan',
-                        text: 'Pilih jenis makanan terlebih dahulu sebelum generate resep',
-                        confirmButtonColor: '#4BA095'
-                    });
-                }
-            });
-
-            // Trigger change event untuk inisialisasi
-            if (selectedType) {
-                typeSelect.dispatchEvent(new Event('change'));
-            }
-
-            updateAddButtonState();
+    typeSelect.addEventListener('change', function() {
+        // Update default time berdasarkan jenis makanan
+        const selectedType = this.value;
+        if (selectedType && mealTimeOptions[selectedType]) {
+            const timeInput = this.closest('.meal-time-item').querySelector('input[type="time"]');
+            timeInput.value = mealTimeOptions[selectedType].default_time;
         }
 
+        // Update generate button data-type
+        generateBtn.setAttribute('data-type', selectedType);
+        
+        // Update semua dropdown type untuk sinkronisasi
+        updateAllMealTypeDropdowns();
+    });
+
+    generateBtn.addEventListener('click', function() {
+        const mealType = this.getAttribute('data-type') || typeSelect.value;
+        if (mealType) {
+            showGenerateModalForMeal(mealType);
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Pilih Jenis Makanan',
+                text: 'Pilih jenis makanan terlebih dahulu sebelum generate resep',
+                confirmButtonColor: '#4BA095'
+            });
+        }
+    });
+
+    // Initialize nutrition preview jika ada resep yang dipilih
+    if (selectedRecipe) {
+        recipeSelect.dispatchEvent(new Event('change'));
+    }
+
+    updateAddButtonState();
+}
+
+// Helper function untuk mendapatkan default time
+function getDefaultTime(mealType) {
+    if (mealType && mealTimeOptions[mealType]) {
+        return mealTimeOptions[mealType].default_time;
+    }
+    return '12:00';
+}
+
+// Function untuk update semua dropdown type
+function updateAllMealTypeDropdowns() {
+    const allTypeSelects = document.querySelectorAll('.meal-time-type');
+    const allUsedTypes = Array.from(allTypeSelects)
+        .map(select => select.value)
+        .filter(value => value !== '');
+
+    allTypeSelects.forEach(select => {
+        const currentValue = select.value;
+        
+        Array.from(select.options).forEach(option => {
+            if (option.value === '') return; // Skip placeholder
+            
+            const isUsed = allUsedTypes.includes(option.value) && option.value !== currentValue;
+            const isCurrent = option.value === currentValue;
+            
+            if (isUsed && !isCurrent) {
+                option.disabled = true;
+            } else {
+                option.disabled = false;
+            }
+        });
+    });
+}
         // Function untuk menghapus meal time
         function removeMealTime(mealTimeId) {
             const mealTimeElement = document.getElementById(mealTimeId);

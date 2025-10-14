@@ -5,7 +5,7 @@
         $navigation = [
             ['name' => 'Dashboard', 'route' => 'dashboard', 'href' => route('dashboard')],
             ['name' => 'Meal Plans', 'route' => 'meal-plans', 'href' => route('meal-plans.index')],
-            ['name' => 'Anak Saya', 'route' => 'children', 'href' => route('dashboard')],
+            ['name' => 'Anak Saya', 'route' => 'children', 'href' => route('children.index')],
             ['name' => 'Resep Saya', 'route' => 'favorites', 'href' => route('recipes.index')],
         ];
     @endphp

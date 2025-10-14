@@ -10,32 +10,28 @@
                         <h1 class="text-3xl font-bold text-gray-900">Meal Plans</h1>
                         <p class="text-gray-600 mt-2">Kelola rencana makanan untuk anak Anda</p>
                     </div>
-                    <div class="flex space-x-3">
-                        <a href="{{ route('meal-plans.create') }}?child_id={{ request('child_id') }}"
-                            class="bg-[#4BA095] text-white px-6 py-3 rounded-lg hover:bg-[#3a887d] transition font-semibold flex items-center">
-                            ➕ Buat Meal Plan Baru
-                        </a>
-                    </div>
+
                 </div>
             </div>
 
             <!-- Filter Section -->
             <div class="bg-white rounded-2xl shadow-sm border p-6 mb-6">
-                <div class="flex flex-wrap gap-4 items-center">
+                <div class="flex flex-wrap gap-4 items-center ">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter Tanggal</label>
                         <input type="date" id="dateFilter"
                             class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095]">
                     </div>
-                    <div>
+                    <div class=" ">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Filter Anak</label>
                         <select id="childFilter"
-                            class="border border-gray-300 rounded-lg px- py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095]">
-                            <option value="" class="mr-5">Semua Anak</option>
+                            class="border w-[200px] border-gray-300 rounded-lg flex  px-3 mr-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4BA095]">
+                            <option value="" class="text-sm">Semua Anak</option>
                             <!-- Option akan diisi via JavaScript -->
                         </select>
                     </div>
-                    <div class="flex items-end">
+                    <div class="">
+                        <p class="mb-2 text-transparent md:block hidden">hello</p>
                         <button id="resetFilter"
                             class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition font-semibold">
                             🔄 Reset
@@ -67,14 +63,14 @@
                                 </p>
                             </div>
                             <div class="flex space-x-2">
-                                <button onclick="editMealPlan({{ $mealPlan->id }})"
+                                {{-- <button onclick="editMealPlan({{ $mealPlan->id }})"
                                     class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition font-semibold text-sm">
                                     ✏️ Edit
                                 </button>
                                 <button onclick="deleteMealPlan({{ $mealPlan->id }})"
                                     class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition font-semibold text-sm">
                                     🗑️ Hapus
-                                </button>
+                                </button> --}}
                             </div>
                         </div>
 
@@ -138,7 +134,7 @@
                                             </div>
                                         </div>
                                         <div class="flex space-x-1">
-                                            <button
+                                            {{-- <button
                                                 onclick="markAsCompleted({{ $mealPlan->id }}, {{ $recipe->id }})"
                                                 class="text-green-600 hover:text-green-800 text-lg"
                                                 title="Tandai selesai">
@@ -148,7 +144,7 @@
                                                 class="text-red-600 hover:text-red-800 text-lg"
                                                 title="Hapus dari meal plan">
                                                 ×
-                                            </button>
+                                            </button> --}}
                                         </div>
                                     </div>
 
@@ -188,33 +184,17 @@
                                         </div>
                                     @endif
 
-                                    <!-- Ingredients Preview -->
+                                    <!-- Detail Button -->
                                     <div class="mt-3">
-                                        <button onclick="toggleIngredients({{ $recipe->id }})"
+                                        <button onclick="showRecipeDetail({{ $recipe->id }})"
                                             class="text-[#4BA095] hover:text-[#3a887d] text-sm font-semibold flex items-center">
-                                            🛒 Lihat Bahan-bahan
-                                            <svg class="w-4 h-4 ml-1 transition-transform" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
+                                            📋 Lihat Detail
+                                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 9l-7 7-7-7"></path>
+                                                    d="M9 5l7 7-7 7"></path>
                                             </svg>
                                         </button>
-                                        <div id="ingredients-{{ $recipe->id }}"
-                                            class="hidden mt-2 text-xs text-gray-600">
-                                            <ul class="list-disc list-inside space-y-1">
-                                                @if (is_array($recipe->ingredients))
-                                                    @foreach (array_slice($recipe->ingredients, 0, 3) as $ingredient)
-                                                        <li>{{ $ingredient }}</li>
-                                                    @endforeach
-                                                    @if (count($recipe->ingredients) > 3)
-                                                        <li class="text-[#4BA095] font-semibold">
-                                                            +{{ count($recipe->ingredients) - 3 }} bahan lainnya</li>
-                                                    @endif
-                                                @else
-                                                    <li>Bahan tidak tersedia</li>
-                                                @endif
-                                            </ul>
-                                        </div>
                                     </div>
                                 </div>
                             @empty
@@ -222,7 +202,7 @@
                                     <div class="text-gray-400 text-6xl mb-4">🍽️</div>
                                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum ada resep</h3>
                                     <p class="text-gray-600 mb-4">Tambahkan resep ke meal plan ini untuk memulai.</p>
-                                    <a href="{{ route('meal-plans.create') }}?child_id={{ $mealPlan->child_id }}&date={{ $mealPlan->dat }}"
+                                    <a href="{{ route('meal-plans.create') }}?child_id={{ $mealPlan->child_id }}&date={{ $mealPlan->date }}"
                                         class="bg-[#4BA095] text-white px-6 py-2 rounded-lg hover:bg-[#3a887d] transition font-semibold inline-flex items-center">
                                         ➕ Tambah Resep
                                     </a>
@@ -239,7 +219,7 @@
                             Mulai buat meal plan pertama Anda untuk mengatur makanan anak dengan lebih terstruktur dan
                             bergizi.
                         </p>
-                        <a href="{{ route('meal-plans.create') }}"
+                        <a href="{{ route('children.index') }}"
                             class="bg-[#4BA095] text-white px-8 py-3 rounded-lg hover:bg-[#3a887d] transition font-semibold inline-flex items-center text-lg">
                             🎯 Buat Meal Plan Pertama
                         </a>
@@ -256,7 +236,51 @@
         </div>
     </div>
 
+    <!-- Modal Detail Resep -->
+    <div id="recipeDetailModal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900" id="modalRecipeName">Detail Resep</h3>
+                    <button type="button" onclick="closeRecipeDetail()"
+                        class="text-gray-400 hover:text-gray-600 text-2xl">
+                        &times;
+                    </button>
+                </div>
+
+                <div id="recipeDetailContent">
+                    <!-- Konten detail akan diisi via JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Data recipes untuk modal detail
+        const recipesData = {
+            @foreach ($mealPlans ?? [] as $mealPlan)
+                @foreach ($mealPlan->recipes as $recipe)
+                    {{ $recipe->id }}: {
+                        name: `{{ $recipe->name }}`,
+                        description: `{{ $recipe->description }}`,
+                        time: {{ $recipe->time }},
+                        portion: {{ $recipe->portion }},
+                        weight: {{ $recipe->weight }},
+                        meal_type: `{{ $recipe->meal_type }}`,
+                        ingredients: @json($recipe->ingredients ?? []),
+                        steps: @json($recipe->step ?? []),
+                        nutrition: @json($recipe->nutrition ?? null),
+                        pivot: {
+                            type: `{{ $recipe->pivot->type }}`,
+                            time: `{{ $recipe->pivot->time }}`,
+                            status: `{{ $recipe->pivot->status }}`
+                        }
+                    },
+                @endforeach
+            @endforeach
+        };
+
         // Filter Functionality
         document.addEventListener('DOMContentLoaded', function() {
             const dateFilter = document.getElementById('dateFilter');
@@ -310,34 +334,187 @@
             });
         });
 
-        // Toggle ingredients visibility
-      // Toggle ingredients visibility - FIXED VERSION
-function toggleIngredients(recipeId) {
-    const ingredientsDiv = document.getElementById('ingredients-' + recipeId);
-    
-    if (!ingredientsDiv) {
-        console.error('Ingredients div not found for recipe ID:', recipeId);
-        return;
-    }
+        // Show recipe detail modal
+        function showRecipeDetail(recipeId) {
+            const recipe = recipesData[recipeId];
+            if (!recipe) {
+                console.error('Recipe not found:', recipeId);
+                return;
+            }
 
-    // Cari button yang diklik
-    const button = ingredientsDiv.previousElementSibling;
-    
-    if (!button) {
-        console.error('Button not found for recipe ID:', recipeId);
-        return;
-    }
+            // Update modal title
+            document.getElementById('modalRecipeName').textContent = recipe.name;
 
-    const icon = button.querySelector('svg');
-    
-    if (icon) {
-        ingredientsDiv.classList.toggle('hidden');
-        icon.classList.toggle('rotate-180');
-    } else {
-        // Fallback jika SVG tidak ditemukan
-        ingredientsDiv.classList.toggle('hidden');
-    }
-}
+            // Build modal content
+            let modalContent = `
+                <div class="space-y-6">
+                    <!-- Header Info -->
+                    <div class="bg-gradient-to-r from-[#4BA095] to-[#7B5E3C] rounded-lg p-4 text-white">
+                        <h4 class="font-bold text-lg mb-2">${recipe.name}</h4>
+                        <p class="text-white/90">${recipe.description}</p>
+                    </div>
+
+                    <!-- Meal Info Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-[#4BA095]">${recipe.time}</div>
+                            <div class="text-sm text-gray-600">Menit</div>
+                        </div>
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-[#7B5E3C]">${recipe.portion}</div>
+                            <div class="text-sm text-gray-600">Porsi</div>
+                        </div>
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-[#F5B947]">${recipe.weight}</div>
+                            <div class="text-sm text-gray-600">Gram</div>
+                        </div>
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-lg font-bold text-[#E76F51] capitalize">${recipe.pivot.type}</div>
+                            <div class="text-sm text-gray-600">Jenis</div>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-2 gap-6">
+                        <!-- Ingredients Section -->
+                        <div>
+                            <h5 class="font-semibold text-gray-900 text-lg mb-3 flex items-center">
+                                <span class="mr-2">🛒</span> Bahan-bahan
+                            </h5>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <ul class="space-y-2">
+            `;
+
+            // Add ingredients
+            if (recipe.ingredients && recipe.ingredients.length > 0) {
+                recipe.ingredients.forEach(ingredient => {
+                    modalContent += `
+                        <li class="flex items-start">
+                            <span class="text-[#4BA095] mr-2 mt-1">•</span>
+                            <span class="text-gray-700">${ingredient}</span>
+                        </li>
+                    `;
+                });
+            } else {
+                modalContent += `<li class="text-gray-500">Tidak ada bahan yang tercantum</li>`;
+            }
+
+            modalContent += `
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Nutrition Section -->
+                        <div>
+                            <h5 class="font-semibold text-gray-900 text-lg mb-3 flex items-center">
+                                <span class="mr-2">📊</span> Informasi Gizi
+                            </h5>
+                            <div class="bg-gray-50 rounded-lg p-4">
+            `;
+
+            // Add nutrition info
+            if (recipe.nutrition) {
+                modalContent += `
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                            <span class="text-sm font-medium">Kalori:</span>
+                            <span class="text-sm ml-auto font-bold">${recipe.nutrition.calories} kkal</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                            <span class="text-sm font-medium">Protein:</span>
+                            <span class="text-sm ml-auto font-bold">${recipe.nutrition.protein}g</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-sm font-medium">Karbohidrat:</span>
+                            <span class="text-sm ml-auto font-bold">${recipe.nutrition.carb}g</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                            <span class="text-sm font-medium">Lemak Total:</span>
+                            <span class="text-sm ml-auto font-bold">${recipe.nutrition.total_fat}g</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                modalContent += `<p class="text-gray-500 text-sm">Informasi gizi tidak tersedia</p>`;
+            }
+
+            modalContent += `
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Steps Section -->
+                    <div>
+                        <h5 class="font-semibold text-gray-900 text-lg mb-3 flex items-center">
+                            <span class="mr-2">👩‍🍳</span> Cara Membuat
+                        </h5>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ol class="space-y-3">
+            `;
+
+            // Add steps
+            if (recipe.steps && recipe.steps.length > 0) {
+                recipe.steps.forEach((step, index) => {
+                    modalContent += `
+                        <li class="flex items-start">
+                            <span class="bg-[#4BA095] text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">
+                                ${index + 1}
+                            </span>
+                            <span class="text-gray-700">${step}</span>
+                        </li>
+                    `;
+                });
+            } else {
+                modalContent += `<li class="text-gray-500">Tidak ada langkah yang tercantum</li>`;
+            }
+
+            modalContent += `
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Info -->
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h5 class="font-semibold text-gray-900 text-lg mb-2 flex items-center">
+                            <span class="mr-2">⏰</span> Jadwal dalam Meal Plan
+                        </h5>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="font-medium text-gray-600">Waktu:</span>
+                                <span class="ml-2 font-bold">${recipe.pivot.time}</span>
+                            </div>
+                            <div>
+                                <span class="font-medium text-gray-600">Status:</span>
+                                <span class="ml-2 font-bold capitalize ${recipe.pivot.status === 'completed' ? 'text-green-600' : 'text-orange-600'}">
+                                    ${recipe.pivot.status}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Update modal content
+            document.getElementById('recipeDetailContent').innerHTML = modalContent;
+
+            // Show modal
+            document.getElementById('recipeDetailModal').classList.remove('hidden');
+        }
+
+        // Close recipe detail modal
+        function closeRecipeDetail() {
+            document.getElementById('recipeDetailModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('recipeDetailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRecipeDetail();
+            }
+        });
 
         // Mark recipe as completed
         function markAsCompleted(mealPlanId, recipeId) {
@@ -490,10 +667,6 @@ function toggleIngredients(recipeId) {
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-        }
-
-        .rotate-180 {
-            transform: rotate(180deg);
         }
     </style>
 </x-layout>
