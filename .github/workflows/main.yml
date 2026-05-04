@@ -46,19 +46,28 @@ jobs:
           unzip -t deploy.zip
           echo "--- Zip File OK ---"
           
-      # 7️⃣ Setup SSH to server
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      # 7️⃣ Upload deploy.zip ke Server (Tanpa Nyangkut)
+      - name: Copy zip to server
+        uses: appleboy/scp-action@v0.1.7
         with:
-          ssh-private-key: ${{ secrets.SERVER_KEY }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_KEY }}
+          port: 22
+          source: "deploy.zip"
+          target: "/home/${{ secrets.SERVER_USERNAME }}/"
 
-      # 8️⃣ Upload and deploy to Hestia
-      - name: Upload and extract on server
-        run: |
-          scp -o StrictHostKeyChecking=no deploy.zip ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USERNAME }}/deploy.zip
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "
-            cd /home/${{ secrets.SERVER_USERNAME }}/web/coba.carryus.web.id/public_html &&
-            unzip -o /home/${{ secrets.SERVER_USERNAME }}/deploy.zip &&
-            rm /home/${{ secrets.SERVER_USERNAME }}/deploy.zip &&
-            php artisan optimize
-          "
+      # 8️⃣ Eksekusi perintah di Server
+      - name: Extract and Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_KEY }}
+          port: 22
+          script: |
+            cd /home/${{ secrets.SERVER_USERNAME }}/web/coba.carryus.web.id/public_html
+            unzip -o /home/${{ secrets.SERVER_USERNAME }}/deploy.zip
+            rm /home/${{ secrets.SERVER_USERNAME }}/deploy.zip
+            php artisan migrate --force
+            php artisan optimize:clear
