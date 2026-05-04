@@ -91,179 +91,179 @@ class RecipeController extends Controller
 
     // Simpan resep setelah user memilih "Simpan Saja"
     // Simpan resep dan tambahkan ke meal plan
-public function saveAndAddToMealPlan(Request $request)
-{
-    \Log::info('🎯 saveAndAddToMealPlan METHOD CALLED - START');
-    \Log::info('Request data:', $request->all());
+    public function saveAndAddToMealPlan(Request $request)
+    {
+        \Log::info('🎯 saveAndAddToMealPlan METHOD CALLED - START');
+        \Log::info('Request data:', $request->all());
 
-    try {
-        // Get data dari request
-        $data = $request->json()->all();
-        \Log::info('📦 Received data for save and add:', $data);
+        try {
+            // Get data dari request
+            $data = $request->json()->all();
+            \Log::info('📦 Received data for save and add:', $data);
 
-        // Validasi
-        $validator = \Validator::make($data, [
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'ingredients' => 'required|array',
-            'steps' => 'required|array',
-            'time' => 'required|integer|min:1',
-            'portion' => 'required|integer|min:1',
-            'weight' => 'required|integer|min:1',
-            'calories' => 'required|numeric|min:0',
-            'carbohydrate' => 'required|numeric|min:0',
-            'protein' => 'required|numeric|min:0',
-            'total_fat' => 'required|numeric|min:0',
-            'saturated_fat' => 'required|numeric|min:0',
-            'meal_type' => 'required|string',
-            'child_id' => 'required|exists:childrens,id',
-        ]);
+            // Validasi
+            $validator = \Validator::make($data, [
+                'name' => 'required|string|max:255',
+                'description' => 'required|string',
+                'ingredients' => 'required|array',
+                'steps' => 'required|array',
+                'time' => 'required|integer|min:1',
+                'portion' => 'required|integer|min:1',
+                'weight' => 'required|integer|min:1',
+                'calories' => 'required|numeric|min:0',
+                'carbohydrate' => 'required|numeric|min:0',
+                'protein' => 'required|numeric|min:0',
+                'total_fat' => 'required|numeric|min:0',
+                'saturated_fat' => 'required|numeric|min:0',
+                'meal_type' => 'required|string',
+                'child_id' => 'required|exists:childrens,id',
+            ]);
 
-        if ($validator->fails()) {
-            \Log::error('❌ Validation failed in saveAndAdd:', $validator->errors()->toArray());
+            if ($validator->fails()) {
+                \Log::error('❌ Validation failed in saveAndAdd:', $validator->errors()->toArray());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal: ' . implode(', ', $validator->errors()->all()),
+                    'errors' => $validator->errors()->toArray()
+                ], 422);
+            }
+
+            $validated = $validator->validated();
+            \Log::info('✅ Validation passed for save and add');
+
+            // SIMPAN RECIPE - dengan user_id dan meal_type
+            $recipeData = [
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'ingredients' => $validated['ingredients'],
+                'step' => $validated['steps'],
+                'time' => $validated['time'],
+                'portion' => $validated['portion'],
+                'weight' => $validated['weight'],
+                'meal_type' => $validated['meal_type'] ?: 'nasi', // SIMPAN meal_type
+                'user_id' => auth()->id(), // SIMPAN user_id
+            ];
+
+            \Log::info('💾 Saving recipe:', $recipeData);
+
+            $recipe = Recipe::create($recipeData);
+
+            \Log::info('✅ Recipe created with ID: ' . $recipe->id);
+
+            // SIMPAN NUTRITION
+            $nutritionData = [
+                'recipe_id' => $recipe->id,
+                'calories' => $validated['calories'],
+                'carb' => $validated['carbohydrate'],
+                'protein' => $validated['protein'],
+                'total_fat' => $validated['total_fat'],
+                'saturated_fat' => $validated['saturated_fat'],
+            ];
+
+            \Log::info('💾 Saving nutrition:', $nutritionData);
+
+            $nutrition = Nutrition::create($nutritionData);
+            \Log::info('✅ Nutrition created with ID: ' . $nutrition->id);
+
+            \Log::info('🎉 Recipe saved successfully for meal plan');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Resep berhasil disimpan!',
+                'recipe_id' => $recipe->id,
+                'child_id' => $validated['child_id'],
+                'meal_type' => $validated['meal_type']
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('💥 saveAndAddToMealPlan error: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
+            \Log::error('Trace: ' . $e->getTraceAsString());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi gagal: ' . implode(', ', $validator->errors()->all()),
-                'errors' => $validator->errors()->toArray()
-            ], 422);
+                'message' => 'Gagal menyimpan resep: ' . $recipeData['meal_type']
+            ], 500);
         }
-
-        $validated = $validator->validated();
-        \Log::info('✅ Validation passed for save and add');
-
-        // SIMPAN RECIPE - dengan user_id dan meal_type
-        $recipeData = [
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'ingredients' => $validated['ingredients'],
-            'step' => $validated['steps'],
-            'time' => $validated['time'],
-            'portion' => $validated['portion'],
-            'weight' => $validated['weight'],
-            'meal_type' => $validated['meal_type'] ?: 'nasi', // SIMPAN meal_type
-            'user_id' => auth()->id(), // SIMPAN user_id
-        ];
-
-        \Log::info('💾 Saving recipe:', $recipeData);
-
-        $recipe = Recipe::create($recipeData);
-
-        \Log::info('✅ Recipe created with ID: ' . $recipe->id);
-
-        // SIMPAN NUTRITION
-        $nutritionData = [
-            'recipe_id' => $recipe->id,
-            'calories' => $validated['calories'],
-            'carb' => $validated['carbohydrate'],
-            'protein' => $validated['protein'],
-            'total_fat' => $validated['total_fat'],
-            'saturated_fat' => $validated['saturated_fat'],
-        ];
-
-        \Log::info('💾 Saving nutrition:', $nutritionData);
-
-        $nutrition = Nutrition::create($nutritionData);
-        \Log::info('✅ Nutrition created with ID: ' . $nutrition->id);
-
-        \Log::info('🎉 Recipe saved successfully for meal plan');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Resep berhasil disimpan!',
-            'recipe_id' => $recipe->id,
-            'child_id' => $validated['child_id'],
-            'meal_type' => $validated['meal_type']
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('💥 saveAndAddToMealPlan error: ' . $e->getMessage());
-        \Log::error('File: ' . $e->getFile());
-        \Log::error('Line: ' . $e->getLine());
-        \Log::error('Trace: ' . $e->getTraceAsString());
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal menyimpan resep: ' . $recipeData['meal_type']
-        ], 500);
     }
-}
 
-// Simpan resep saja
-public function saveRecipeOnly(Request $request)
-{
-    try {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'ingredients' => 'required|array',
-            'steps' => 'required|array',
-            'time' => 'required|integer',
-            'portion' => 'required|integer',
-            'weight' => 'required|integer',
-            'calories' => 'required|numeric',
-            'carbohydrate' => 'required|numeric',
-            'protein' => 'required|numeric',
-            'total_fat' => 'required|numeric',
-            'saturated_fat' => 'required|numeric',
-            'meal_type' => 'required|in:breakfast,lunch,dinner,snack,morning_snack,afternoon_snack,evening_snack'
-        ]);
+    // Simpan resep saja
+    public function saveRecipeOnly(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'required|string',
+                'ingredients' => 'required|array',
+                'steps' => 'required|array',
+                'time' => 'required|integer',
+                'portion' => 'required|integer',
+                'weight' => 'required|integer',
+                'calories' => 'required|numeric',
+                'carbohydrate' => 'required|numeric',
+                'protein' => 'required|numeric',
+                'total_fat' => 'required|numeric',
+                'saturated_fat' => 'required|numeric',
+                'meal_type' => 'required|in:breakfast,lunch,dinner,snack,morning_snack,afternoon_snack,evening_snack'
+            ]);
 
-        // Create recipe - dengan user_id dan meal_type
-        $recipe = Recipe::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'ingredients' => $request->ingredients,
-            'step' => $request->steps,
-            'time' => $request->time,
-            'portion' => $request->portion,
-            'weight' => $request->weight,
-            'meal_type' => $request->meal_type, // SIMPAN meal_type
-            'user_id' => auth()->id(), // SIMPAN user_id
-        ]);
+            // Create recipe - dengan user_id dan meal_type
+            $recipe = Recipe::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'ingredients' => $request->ingredients,
+                'step' => $request->steps,
+                'time' => $request->time,
+                'portion' => $request->portion,
+                'weight' => $request->weight,
+                'meal_type' => $request->meal_type, // SIMPAN meal_type
+                'user_id' => auth()->id(), // SIMPAN user_id
+            ]);
 
-        // Create nutrition
-        Nutrition::create([
-            'recipe_id' => $recipe->id,
-            'calories' => $request->calories,
-            'carb' => $request->carbohydrate,
-            'protein' => $request->protein,
-            'total_fat' => $request->total_fat,
-            'saturated_fat' => $request->saturated_fat,
-        ]);
+            // Create nutrition
+            Nutrition::create([
+                'recipe_id' => $recipe->id,
+                'calories' => $request->calories,
+                'carb' => $request->carbohydrate,
+                'protein' => $request->protein,
+                'total_fat' => $request->total_fat,
+                'saturated_fat' => $request->saturated_fat,
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Resep berhasil disimpan!',
-            'recipe_id' => $recipe->id
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Resep berhasil disimpan!',
+                'recipe_id' => $recipe->id
+            ]);
 
-    } catch (\Exception $e) {
-        Log::error('Save recipe error: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal menyimpan resep: ' . $e->getMessage()
-        ], 500);
+        } catch (\Exception $e) {
+            Log::error('Save recipe error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan resep: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
 
     // Simpan resep dan tambahkan ke meal plan
 
-    
+
 
     // Generate resep dengan AI - PERBAIKAN DI SINI
 
     // Simpan resep yang digenerate (untuk halaman terpisah)
 
     // List resep
-   public function index()
-{
-    $recipes = Recipe::with('nutrition')
-        ->where('user_id', auth()->id()) // Hanya resep milik user yang login
-        ->orderBy('created_at', 'desc') // Urutkan dari yang terbaru
-        ->get();
-    
-    return view('listRecipe', compact('recipes'));
-}
+    public function index()
+    {
+        $recipes = Recipe::with('nutrition')
+            ->where('user_id', auth()->id()) // Hanya resep milik user yang login
+            ->orderBy('created_at', 'desc') // Urutkan dari yang terbaru
+            ->get();
+
+        return view('listRecipe', compact('recipes'));
+    }
 
     private function createOptimizedPrompt(
         int $ageInMonths,
