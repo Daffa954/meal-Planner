@@ -15,7 +15,7 @@
             <div
                 class="max-w-4xl text-center backdrop-blur-sm bg-[#b8b8b89d] p-12 rounded-3xl border border-white/20 shadow-xl z-10 mx-4">
                 <h1 class="text-6xl md:text-7xl text-[#FCD47F] font-bold leading-tight mb-4">
-                    Meal Planner
+                    Mea Planner
                 </h1>
                 <h2 class="text-3xl md:text-4xl text-white font-bold leading-tight mb-6 drop-shadow-md">
                     Rencana Makan Sehat untuk Anak, Sesuai Selera, Kebutuhan, dan
