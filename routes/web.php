@@ -27,7 +27,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/children/{child}', [ChildrenController::class, 'show'])->name('children.show');
     Route::get('/children/{child}', [ChildrenController::class, 'edit'])->name('children.edit');
     Route::put('/children/{child}', [ChildrenController::class, 'update'])->name('children.update');
-Route::resource('children', ChildrenController::class);
+   
 
     // Route::get('/children', [ChildrenController::class, 'edit'])->name('children.edit');
 
