@@ -33,7 +33,7 @@ WORKDIR /var/www
 COPY . .
 
 # Install dependency PHP
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
 # MAGIC TRICK: Ambil hasil build Vite dari TAHAP 1 dan masukkan ke TAHAP 2
 COPY --from=frontend-builder /app/public/build /var/www/public/build
