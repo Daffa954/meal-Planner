@@ -32,6 +32,10 @@ WORKDIR /var/www
 # Salin seluruh kode backend
 COPY . .
 
+# --- TAMBAHKAN BARIS INI ---
+RUN rm -f .env && touch .env
+# ---------------------------
+
 # Install dependency PHP
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
