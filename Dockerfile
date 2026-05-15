@@ -38,8 +38,8 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev --no-script
 # MAGIC TRICK: Ambil hasil build Vite dari TAHAP 1 dan masukkan ke TAHAP 2
 COPY --from=frontend-builder /app/public/build /var/www/public/build
 
-# Atur hak akses agar Laravel bisa menulis log & cache
-RUN chown -R www-data:www-data /var/www/storage /var/www/cache
+# PERBAIKAN DI SINI: Atur hak akses folder storage dan bootstrap/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Salin konfigurasi Nginx
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
