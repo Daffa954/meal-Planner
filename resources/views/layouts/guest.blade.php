@@ -20,6 +20,7 @@
 
         <link rel="stylesheet" href="{{ asset('build/' . $manifest['resources/css/app.css']['file']) }}">
         <script src="{{ asset('build/' . $manifest['resources/js/app.js']['file']) }}" type="module"></script>
+    @endif
 
 </head>
 
