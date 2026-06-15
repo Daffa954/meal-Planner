@@ -1,73 +1,26 @@
-name: Laravel + Vite CI/CD
+name: CI/CD Laravel Production
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ] # Script ini menyala otomatis setiap ada push ke branch main
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  build-and-push:
+    runs-on: ubuntu-latest # Menggunakan arsitektur Intel (amd64), dijamin cocok dengan VPS Anda
 
     steps:
-      # 1️⃣ Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Tarik Kode
+      uses: actions/checkout@v4
 
-      # 2️⃣ Setup PHP (for Laravel)
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
+    - name: Login ke Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3️⃣ Setup Node.js (for npm build)
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      # 4️⃣ Install dependencies
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader
-
-      - name: Install NPM dependencies
-        run: npm ci
-
-      # 5️⃣ Build frontend (Vite)
-      - name: Build frontend assets
-        run: npm run build
-
-      # 6️⃣ Zip the project (exclude unnecessary files)
-      - name: Package for deployment
-        run: |
-          zip -r deploy.zip . -x "*.git*" "node_modules/*" ".env" "storage/*"
-          
-          echo "--- Verifying Zip File Integrity ---"
-          unzip -t deploy.zip
-          echo "--- Zip File OK ---"
-          
-      # 7️⃣ Upload deploy.zip ke Server (Tanpa Nyangkut)
-      - name: Copy zip to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_KEY }}
-          port: 22
-          source: "deploy.zip"
-          target: "/home/${{ secrets.SERVER_USERNAME }}/"
-
-      # 8️⃣ Eksekusi perintah di Server
-      - name: Extract and Deploy
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_KEY }}
-          port: 22
-          script: |
-            cd /home/${{ secrets.SERVER_USERNAME }}/web/coba.carryus.web.id/public_html
-            unzip -o /home/${{ secrets.SERVER_USERNAME }}/deploy.zip
-            rm /home/${{ secrets.SERVER_USERNAME }}/deploy.zip
-            php artisan migrate --force
-            php artisan optimize:clear
+    - name: Build dan Push ke Docker Hub
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/meal-planner:latest
