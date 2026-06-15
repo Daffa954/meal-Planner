@@ -25,4 +25,4 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/meal-planner:latest
     - name: Beritahu Dokploy untuk Tarik Image Baru
-      run: curl -X GET "http://202.155.19.91:3000/api/deploy/QhznVJRYZ28Jbzu2R8cly"
+      run: curl -X GET "http://202.155.19.91:3000/api/deploy/r24gjUpoLc2AUbfDamXfw"
